@@ -12,7 +12,7 @@ import { useAppAuth } from "./App.hook"
 function App() {
   const { isLoading } = useAppAuth();
 
-  console.log(import.meta.env.VITE_SERVER_URL)
+  console.log(import.meta.env.VITE_SERVER_URL);
 
   if (isLoading) return (<Layout>
     <div className="w-max mx-auto">
