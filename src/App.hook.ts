@@ -1,7 +1,7 @@
 import React from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useNavigate, useMatch } from "react-router-dom";
+// import { useNavigate, useMatch } from "react-router-dom";
 import { authStore } from "./state/auth";
 
 interface IResponse {
@@ -13,48 +13,38 @@ interface IResponse {
 }
 
 export const useAppAuth = () => {
-  const navigate = useNavigate();
-  const isIndexUrl = useMatch("/");
   const { token, setLogin, setToken } = authStore();
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [status, setStatus] = React.useState<"init" | "loading" | "error" | "ok">("init");
 
   React.useEffect(() => {
     (async () => {
       try {
-        setIsLoading(true);
+        setStatus("loading");
 
         const localStorageToken = window.localStorage.getItem("token");
 
-        const isTryingToIndexWithoutToken = isIndexUrl && !token && !localStorageToken;
-
-        if (isTryingToIndexWithoutToken) return navigate("/login");
+        if (!localStorageToken) return setStatus("error");
 
         const { data } = await axios.get<IResponse>(`${import.meta.env.VITE_SERVER_URL}/me`, {
           headers: { Authorization: localStorageToken }
         })
 
-        if (!data.success) return navigate("/login");
+        if (!data.success) return setStatus("error");
 
         setToken(data.token);
         setLogin(data.user.login);
+        setStatus("ok");
 
         toast.success("Loginning was successful");
-
-        return navigate("/");
       }
-
       catch (error) {
+        setStatus("error");
         console.warn(error);
-        return navigate("/login");
-      }
-
-      finally {
-        setIsLoading(false);
       }
     })();
   }, [token])
 
 
 
-  return { isLoading }
+  return { status }
 }
